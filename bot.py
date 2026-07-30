@@ -5,6 +5,7 @@ import os
 import time
 from datetime import datetime, timedelta
 from telebot import types
+from threading import Thread
 
 # --- НАСТРОЙКИ ---
 TOKEN = "8421479187:AAHv5P6bADrmHLw9czEYsqP-MRIVC9n6XGs"
@@ -138,7 +139,7 @@ def add_card_start(message):
 
 def process_name_step(message):
     if message.text is None:
-        msg = bot.reply_to(message, "❌ Это не текст!")
+        msg = bot.reply_to(message, "❌ Это не текст! Отправь название текстом.")
         bot.register_next_step_handler(msg, process_name_step)
         return
     user_temp_data[message.chat.id]['name'] = message.text
@@ -147,12 +148,12 @@ def process_name_step(message):
 
 def process_rarity_step(message):
     if message.text is None:
-        msg = bot.reply_to(message, "❌ Это не текст!")
+        msg = bot.reply_to(message, "❌ Это не текст! Отправь редкость текстом.")
         bot.register_next_step_handler(msg, process_rarity_step)
         return
     rarity = message.text.strip()
     if rarity not in RARITY_SETTINGS:
-        msg = bot.reply_to(message, "❌ Нет такой редкости!")
+        msg = bot.reply_to(message, "❌ Нет такой редкости! Напиши одну из списка.")
         bot.register_next_step_handler(msg, process_rarity_step)
         return
     user_temp_data[message.chat.id]['rarity'] = rarity
@@ -175,7 +176,8 @@ def process_image_step(message):
         bot.reply_to(message, f"✅ Карта **{card_name}** ({card_rarity}) сохранена под ID {new_id}!")
         del user_temp_data[message.chat.id]
     else:
-        msg = bot.reply_to(message, "❌ Это не картинка!")
+        # ЕСЛИ ОШИБСЯ И ОТПРАВИЛ НЕ КАРТИНКУ, ЗАНОВО ПРОСИМ КАРТИНКУ
+        msg = bot.reply_to(message, "❌ Это не картинка! Отправь фото.")
         bot.register_next_step_handler(msg, process_image_step)
 
 # ------------------ ОБРАБОТЧИКИ МЕНЮ ------------------
@@ -575,7 +577,6 @@ if __name__ == "__main__":
         @app.route('/')
         def home():
             return "Bot is running!"
-        from threading import Thread
         Thread(target=lambda: app.run(host='0.0.0.0', port=8080)).start()
         print("✅ Фейковый сервер запущен на порту 8080!")
     except Exception as e:
