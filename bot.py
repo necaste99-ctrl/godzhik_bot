@@ -61,6 +61,9 @@ def get_card_rarity(card):
         return card['rarity']
     return "Редкая"
 
+# --- ВРЕМЕННЫЕ ДАННЫЕ (ИСПРАВЛЕНИЕ ОШИБКИ) ---
+user_temp_data = {}
+
 # --- ФУНКЦИЯ ВЫДАЧИ КАРТЫ ---
 def give_card_to_user(user_id, username, chat_id, specific_rarity=None):
     cards_db = load_data(DATA_FILE)
@@ -175,7 +178,7 @@ def process_image_step(message):
         msg = bot.reply_to(message, "❌ Это не картинка!")
         bot.register_next_step_handler(msg, process_image_step)
 
-# ------------------ ОБРАБОТЧИКИ МЕНЮ (ВСЕГДА ОТПРАВЛЯЕМ НОВОЕ) ------------------
+# ------------------ ОБРАБОТЧИКИ МЕНЮ ------------------
 @bot.callback_query_handler(func=lambda call: call.data.startswith("menu_"))
 def menu_callback(call):
     bot.answer_callback_query(call.id)
@@ -216,7 +219,7 @@ def menu_callback(call):
         else:
             bot.answer_callback_query(call.id, "❌ Эта функция только для админа!")
 
-# Функции для отправки текста (всегда новым сообщением, без Markdown)
+# Функции для отправки текста
 def show_profile_text(message):
     user_id = str(message.chat.id)
     players_db = load_data(PLAYERS_FILE)
@@ -292,7 +295,7 @@ def buy_callback(call):
     bot.send_message(call.message.chat.id, f"🎉 Открываю {item['name']}...")
     success, error = give_card_to_user(user_id, call.from_user.username or "Аноним", call.message.chat.id, item['rarity'])
 
-# ------------------ ОБРАБОТЧИК КНОПКИ "НАЗАД" ------------------
+# ------------------ КНОПКА НАЗАД ------------------
 @bot.callback_query_handler(func=lambda call: call.data == "back_to_menu")
 def back_to_menu(call):
     bot.answer_callback_query(call.id)
@@ -394,7 +397,7 @@ def sell_cmd(message):
     save_data(players_db, PLAYERS_FILE)
     bot.reply_to(message, f"🏪 Ты продал карту **{target_card_name}** за **{sell_price}** монет!")
 
-# ------------------ ФУНКЦИЯ "ГОДЖИК" (ГРУППА И ЛС) ------------------
+# ------------------ ФУНКЦИЯ "ГОДЖИК" ------------------
 @bot.message_handler(func=lambda message: message.text and message.text.strip().lower() == "годжик")
 def get_card_main(message):
     if message.from_user.id == bot.get_me().id:
@@ -423,7 +426,7 @@ def get_card_main(message):
     else:
         bot.reply_to(message, error)
 
-# ------------------ ДУЭЛЬ С КНОПКАМИ (ТОЛЬКО ДЛЯ ЦЕЛИ) ------------------
+# ------------------ ДУЭЛЬ ------------------
 duel_invites = {}
 
 @bot.message_handler(commands=['fight'])
@@ -563,5 +566,5 @@ if __name__ == "__main__":
         save_data(players_db, PLAYERS_FILE)
         print(f"🧹 Бот удалён из базы игроков (ID: {bot_id_str})")
 
-    print("🤖 Финальный стабильный бот полностью запущен!")
+    print("🤖 Финальный стабильный бот запущен!")
     bot.infinity_polling()
