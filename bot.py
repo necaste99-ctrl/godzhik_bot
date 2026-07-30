@@ -61,7 +61,7 @@ def get_card_rarity(card):
         return card['rarity']
     return "Редкая"
 
-# --- ВРЕМЕННЫЕ ДАННЫЕ (ИСПРАВЛЕНИЕ ОШИБКИ) ---
+# --- ВРЕМЕННЫЕ ДАННЫЕ ---
 user_temp_data = {}
 
 # --- ФУНКЦИЯ ВЫДАЧИ КАРТЫ ---
@@ -557,7 +557,7 @@ def duel_callback(call):
         bot.send_message(chat_id, result_text)
         del duel_invites[invite_key]
 
-# ------------------ ЗАПУСК ------------------
+# ------------------ ЗАПУСК (С ФЕЙКОВЫМ ВЕБ-СЕРВЕРОМ ДЛЯ RENDER) ------------------
 if __name__ == "__main__":
     players_db = load_data(PLAYERS_FILE)
     bot_id_str = str(bot.get_me().id)
@@ -565,6 +565,21 @@ if __name__ == "__main__":
         del players_db[bot_id_str]
         save_data(players_db, PLAYERS_FILE)
         print(f"🧹 Бот удалён из базы игроков (ID: {bot_id_str})")
+
+    print("🤖 Запускаю фейковый веб-сервер для Render...")
+
+    # Фейковый веб-сервер для Render (чтобы он нашёл порт)
+    try:
+        from flask import Flask
+        app = Flask(__name__)
+        @app.route('/')
+        def home():
+            return "Bot is running!"
+        from threading import Thread
+        Thread(target=lambda: app.run(host='0.0.0.0', port=8080)).start()
+        print("✅ Фейковый сервер запущен на порту 8080!")
+    except Exception as e:
+        print(f"⚠️ Не удалось запустить фейковый сервер: {e}. Но бот всё равно запускается.")
 
     print("🤖 Финальный стабильный бот запущен!")
     bot.infinity_polling()
